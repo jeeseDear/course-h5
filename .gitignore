@@ -1,0 +1,22 @@
+# 依赖
+node_modules
+
+# 构建产物
+dist
+dist-ssr
+*.local
+
+# 编辑器 / 系统
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+
+# 本地工具数据（含个人记忆日志，不入库）
+.workbuddy
+
+# 日志
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
