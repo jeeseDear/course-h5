@@ -172,24 +172,14 @@
 import { computed, nextTick, onMounted, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { showToast } from "vant"
-import { fetchCourse, getCourse, VIDEO_SRC } from "../api/course"
+import { fetchCourse, VIDEO_SRC } from "../api/course"
 import { openLoading, closeLoading } from "../utils/loading"
 
 const route = useRoute()
 const router = useRouter()
 
 const videoSrc = VIDEO_SRC
-const course = computed(() => getCourse(route.params.id))
-
-// 进入页面时预取课程数据
-onMounted(async () => {
-	openLoading()
-	try {
-		await fetchCourse(route.params.id)
-	} finally {
-		closeLoading()
-	}
-})
+const course = ref(null)
 
 const started = ref(false)
 const videoEl = ref(null)
@@ -203,15 +193,26 @@ const rate = ref(1)
 const speedOpen = ref(false)
 // 已观看到的最大时间点，用于拦截快进
 const maxWatched = ref(0)
-// 已学完的章节 id（mock：初始取章节自带 done，播完自动追加）
-const finished = ref(new Set((course.value?.chapters || []).filter((c) => c.done).map((c) => c.id)))
+// 已学完的章节 id：初始取接口返回的 done，播完自动追加
+const finished = ref(new Set())
 
-// 续学：默认定位到第一个未学章节；全部学完则从第 1 节重新开始
-const currentIndex = ref((() => {
-	const list = course.value?.chapters || []
-	const index = list.findIndex((ch) => !finished.value.has(ch.id))
-	return index === -1 ? 0 : index
-})())
+// 续学位置：默认第一个未学章节；全部学完则回到第 1 节
+const currentIndex = ref(0)
+
+// 进入页面时拉取课程数据，拿到后回填已学章节与续学位置
+onMounted(async () => {
+	openLoading()
+	try {
+		const data = await fetchCourse(route.params.id)
+		course.value = data
+		if (!data) return
+		finished.value = new Set((data.chapters || []).filter((ch) => ch.done).map((ch) => ch.id))
+		const index = (data.chapters || []).findIndex((ch) => !finished.value.has(ch.id))
+		currentIndex.value = index === -1 ? 0 : index
+	} finally {
+		closeLoading()
+	}
+})
 
 const totalChapters = computed(() => course.value?.chapters.length || 0)
 

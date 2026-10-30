@@ -20,3 +20,14 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+
+# Python 服务
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# SQLite 数据库（由 seed.py 生成，不入库）
+*.db
+*.db-wal
+*.db-shm
